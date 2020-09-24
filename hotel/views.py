@@ -3,24 +3,17 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import ListView, View, DeleteView
 from .models import Room, Booking
 from .forms import AvailabilityForm
-from hotel.booking_functions.availability import check_availability
+from hotel.booking_functions.get_room_cat_url_list import get_room_cat_url_list
+from hotel.booking_functions.get_room_category_human_format import get_room_category_human_format
+from hotel.booking_functions.get_available_rooms import get_available_rooms
+from hotel.booking_functions.book_room import book_room
 
 
 # Create your views here.
 def RoomListView(request):
-    room = Room.objects.all()[0]
-    room_categories = dict(room.ROOM_CATEGORIES)
-
-    room_values = room_categories.values()
-    room_lists = []
-    for room_category in room_categories:
-        room = room_categories.get(room_category)
-        room_url = reverse('hotel:RoomDetailView', kwargs={
-            'category': room_category})
-
-        room_lists.append((room, room_url))
+    room_category_url_list = get_room_cat_url_list()
     context = {
-        "room_list": room_lists,
+        "room_list": room_category_url_list,
     }
     return render(request, 'room_list_view.html', context)
 
@@ -39,16 +32,22 @@ class BookingListView(ListView):
 
 
 class RoomDetailView(View):
+    # Generic "View" based RoomDetailView
     def get(self, request, *args, **kwargs):
-        category = self.kwargs.get('category', None)
-        form = AvailabilityForm()
-        room_list = Room.objects.filter(category=category)
 
-        if len(room_list) > 0:
-            room = room_list[0]
-            room_category = dict(room.ROOM_CATEGORIES).get(room.category, None)
+        # Get Room Category from kwargs
+        category = self.kwargs.get('category', None)
+
+        # Get the Human readable format
+        human_format_room_category = get_room_category_human_format(category)
+
+        # Initialize empty form
+        form = AvailabilityForm()
+
+        # Check for invalid category names
+        if human_format_room_category is not None:
             context = {
-                'room_category': room_category,
+                'room_category': human_format_room_category,
                 'form': form,
             }
             return render(request, 'room_detail_view.html', context)
@@ -56,26 +55,22 @@ class RoomDetailView(View):
             return HttpResponse('Category does not exist!')
 
     def post(self, request, *args, **kwargs):
+
+        # Get Room Category from kwargs
         category = self.kwargs.get('category', None)
-        room_list = Room.objects.filter(category=category)
+
+        # Pass Request.Post into AvailabilityForm
         form = AvailabilityForm(request.POST)
 
+        # Checking form validity
         if form.is_valid():
             data = form.cleaned_data
-        available_rooms = []
-        for room in room_list:
-            if check_availability(room, data['check_in'], data['check_out']):
-                available_rooms.append(room)
 
-        if len(available_rooms) > 0:
-            room = available_rooms[0]
-            booking = Booking.objects.create(
-                user=self.request.user,
-                room=room,
-                check_in=data['check_in'],
-                check_out=data['check_out']
-            )
-            booking.save()
+        # Get Available Rooms
+        available_rooms = get_available_rooms(category, data['check_in'], data['check_out'])
+
+        if available_rooms is not None:
+            booking = book_room(request, available_rooms[0], data['check_in'], data['check_out'])
             return HttpResponse(booking)
         else:
             return HttpResponse("All of this category of rooms are booked!! try another one")
