@@ -10,7 +10,7 @@ def get_room_cat_url_list():
     room = Museum.objects.all()  # [0]  Getting a random "Room" object
 
     # Making a dictionary from "ROOM_CATEGORIES" Tuple on the "Room"
-    room_categories = dict(room.MUSEUM_CATEGORIES)
+    room_categories = dict(Museum.MUSEUM_CATEGORIES)
 
     room_cat_url_list = []  # Empty Room (Category.URL) List
 

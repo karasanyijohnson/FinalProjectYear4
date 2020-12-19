@@ -18,6 +18,7 @@ class Museum(models.Model):
         ("ENVIRONMENT", "ENVIRONMENT"),
         ("KWIGIRA", "KWIGIRA"),
         ("KANDT'S HOUSE", "KANDT'S HOUSE"),
+        ("ETHNOGRAPHIC", "ETHNOGRAPHIC")
 
     )
     category = models.CharField(max_length=50, choices=MUSEUM_CATEGORIES)
