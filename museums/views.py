@@ -3,19 +3,19 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import ListView, View, DeleteView
 from .models import Museum, Booking
 from .forms import AvailabilityForm
-from museums.booking_functions.get_room_cat_url_list import get_room_cat_url_list
-from museums.booking_functions.get_room_category_human_format import get_room_category_human_format
-from museums.booking_functions.get_available_rooms import get_available_rooms
-from museums.booking_functions.book_room import book_room
+from museums.booking_functions.get_museum_cat_url_list import get_museum_cat_url_list
+from museums.booking_functions.get_museum_category_human_format import get_museum_category_human_format
+from museums.booking_functions.get_available_museums import get_available_museums
+from museums.booking_functions.book_museum import book_museum
 
 
 # Create your views here.
-def RoomListView(request):
-    room_category_url_list = get_room_cat_url_list()
+def MuseumListView(request):
+    museum_category_url_list = get_museum_cat_url_list()
     context = {
-        "room_list": room_category_url_list,
+        "museum_list": museum_category_url_list,
     }
-    return render(request, 'room_list_view.html', context)
+    return render(request, 'museum_list_view.html', context)
 
 
 class BookingListView(ListView):
@@ -31,32 +31,32 @@ class BookingListView(ListView):
             return booking_list
 
 
-class RoomDetailView(View):
-    # Generic "View" based RoomDetailView
+class MuseumDetailView(View):
+    # Generic "View" based MuseumDetailView
     def get(self, request, *args, **kwargs):
 
-        # Get Room Category from kwargs
+        # Get Museum Category from kwargs
         category = self.kwargs.get('category', None)
 
         # Get the Human readable format
-        human_format_room_category = get_room_category_human_format(category)
+        human_format_museum_category = get_museum_category_human_format(category)
 
         # Initialize empty form
         form = AvailabilityForm()
 
         # Check for invalid category names
-        if human_format_room_category is not None:
+        if human_format_museum_category is not None:
             context = {
-                'room_category': human_format_room_category,
+                'museum_category': human_format_museum_category,
                 'form': form,
             }
-            return render(request, 'room_detail_view.html', context)
+            return render(request, 'museum_detail_view.html', context)
         else:
             return HttpResponse('Category does not exist!')
 
     def post(self, request, *args, **kwargs):
 
-        # Get Room Category from kwargs
+        # Get Museum Category from kwargs
         category = self.kwargs.get('category', None)
 
         # Pass Request.Post into AvailabilityForm
@@ -66,17 +66,17 @@ class RoomDetailView(View):
         if form.is_valid():
             data = form.cleaned_data
 
-        # Get Available Rooms
-        available_rooms = get_available_rooms(category, data['check_in'], data['check_out'])
+        # Get Available Museums
+        available_museums = get_available_museums(category, data['check_in'], data['check_out'])
 
-        if available_rooms is not None:
-            booking = book_room(request, available_rooms[0], data['check_in'], data['check_out'])
+        if available_museums is not None:
+            booking = book_museum(request, available_museums[0], data['check_in'], data['check_out'])
             return HttpResponse(booking)
         else:
-            return HttpResponse("All of this category of rooms are booked!! try another one")
+            return HttpResponse("All of this category of museums are booked!! try another one")
 
 
 class CancelBookingView(DeleteView):
     model = Booking
     template_name = 'booking_cancel_view.html'
-    success_url = reverse_lazy('hotel:BookingListView')
+    success_url = reverse_lazy('museums:BookingListView')

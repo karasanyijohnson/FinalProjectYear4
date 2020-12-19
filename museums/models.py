@@ -9,8 +9,9 @@ from django.urls import reverse_lazy
 
 
 class Museum(models.Model):
+
     MUSEUM_CATEGORIES = (
-        
+
         ("CAMPAIGN AGAINST GENOCIDE", "CAMPAIGN AGAINST GENOCIDE"),
         ("RWANDA ART", "RWANDA ART"),
         ("KING'S PALACE", "KING'S PALACE"),
@@ -27,8 +28,8 @@ class Museum(models.Model):
     location  = models.CharField(max_length=200)
 
 
-    # def __str__(self):
-    #     return f'{self.number}, {dict(self.ROOM_CATEGORIES)[self.category]} Beds={self.beds} People={self.capacity}'
+    def __str__(self):
+        return f'{dict(self.MUSEUM_CATEGORIES)[self.category]}'
 
 
 class Booking(models.Model):
@@ -40,10 +41,10 @@ class Booking(models.Model):
     # def __str__(self):
     #     return f'from={self.check_in.strftime("%d-%b-%Y %H:%M")} To={self.check_out.strftime("%d-%b-%Y %H:%M")}'
 
-    def get_room_category(self):
-        room_categories = dict(self.room.MUSEUM_CATEGORIES)
-        room_category = room_categories.get(self.room.category)
-        return room_category
+    def get_museum_category(self):
+        museum_categories = dict(self.museum.MUSEUM_CATEGORIES)
+        museum_category = museum_categories.get(self.museum.category)
+        return museum_category
 
     def get_cancel_booking_url(self):
-        return reverse_lazy('hotel:CancelBookingView', args=[self.pk, ])
+        return reverse_lazy('museums:CancelBookingView', args=[self.pk, ])
