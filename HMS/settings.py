@@ -46,8 +46,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
 
     # my_apps
-    'hotel',
-    'hotel.booking_functions',
+    'museums',
+    'museums.booking_functions',
 ]
 
 MIDDLEWARE = [
@@ -141,4 +141,8 @@ SITE_ID = 1
 
 STATIC_URL = '/static/'
 STATIC_ROOT = '/static'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
